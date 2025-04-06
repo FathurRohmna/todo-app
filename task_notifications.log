@@ -1,0 +1,30 @@
+ERROR 2025-04-06 08:18:04,800 views Error creating task: null value in column "queue_status" of relation "items_items" violates not-null constraint
+DETAIL:  Failing row contains (8, 2025-04-16, Next JS Developer improtant 122, f, React js, 1, null, null, null, null, null, null, null).
+
+ERROR 2025-04-06 08:25:14,019 views Error creating task: null value in column "queue_status" of relation "items_items" violates not-null constraint
+DETAIL:  Failing row contains (9, 2025-04-16, Next JS Developer improtant 122, TODO, React js, 1, null, null, null, null, null, null, null).
+
+ERROR 2025-04-06 08:25:16,234 views Error creating task: null value in column "queue_status" of relation "items_items" violates not-null constraint
+DETAIL:  Failing row contains (10, 2025-04-16, Next JS Developer improtant 122, TODO, React js, 1, null, null, null, null, null, null, null).
+
+ERROR 2025-04-06 08:34:34,869 views Error creating task: null value in column "queue_status" of relation "items_items" violates not-null constraint
+DETAIL:  Failing row contains (1, 2025-04-16, Next JS Developer improtant 122, TODO, Next js, 1, null, null, null, null, null, null, null).
+
+ERROR 2025-04-06 08:34:43,256 views Error creating task: null value in column "queue_status" of relation "items_items" violates not-null constraint
+DETAIL:  Failing row contains (2, 2025-04-24, Next JS Developer improtant 122, TODO, Next js, 1, null, null, null, null, null, null, null).
+
+ERROR 2025-04-06 08:35:05,497 views Error creating task: null value in column "queue_status" of relation "items_items" violates not-null constraint
+DETAIL:  Failing row contains (3, 2025-04-24, Next JS Developer improtant 122, TODO, Next js, 1, null, null, null, null, null, null, null).
+
+INFO 2025-04-06 08:42:01,590 views New task created: ID=4, Description=Next JS Developer improtant 122, Owner=admin
+INFO 2025-04-06 08:42:38,829 views New task created: ID=5, Description=Next JS Developer improtant, Owner=admin
+INFO 2025-04-06 08:58:05,323 views New task created: ID=6, Description=Next JS Developer improtant 12 1, Owner=admin
+INFO 2025-04-06 09:23:44,003 views New task created: ID=7, Description=Next JS Developer improtant 12, Owner=admin
+INFO 2025-04-06 09:32:43,919 views New task created: ID=8, Description=Next JS Developer improtant 12 1, Owner=admin
+ERROR 2025-04-06 09:47:59,146 tasks Failed to send notification email for task 5: (535, b'5.7.8 Error: authentication failed: PDkyMjUwMTU5Mzc2MjU1MzMuMTc0MzkzMjg2MUBwLXBtLW91dGJvdW5kZzAyYy1hd3MtYXBub3J0aGVhc3QyYz4=')
+ERROR 2025-04-06 09:47:59,301 tasks Failed to send notification email for task 4: (535, b'5.7.8 Error: authentication failed: PDY4NDc3NTM1MDM0NjMzNzUuMTc0MzkzMjg2MUBwLXBtLW91dGJvdW5kZzAxYS1hd3MtYXBub3J0aGVhc3QyYT4=')
+ERROR 2025-04-06 09:48:18,253 tasks Failed to send notification email for task 6: (535, b'5.7.8 Error: authentication failed: PDI0MzcyMDk2NTY1MDYxNTMuMTc0MzkzMjg4MEBwLXBtLW91dGJvdW5kZzAyYS1hd3MtYXBub3J0aGVhc3QyYT4=')
+ERROR 2025-04-06 09:48:18,516 tasks Failed to send notification email for task 8: [Errno 111] Connection refused
+INFO 2025-04-06 09:52:42,179 views New task created: ID=9, Description=Next JS Developer improtant 12 12, Owner=admin
+ERROR 2025-04-06 09:52:42,530 tasks Failed to send notification email for task 9: [Errno 111] Connection refused
+ERROR 2025-04-06 09:52:59,780 tasks Failed to send notification email for task 7: Connection unexpectedly closed

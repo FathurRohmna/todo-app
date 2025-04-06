@@ -3,10 +3,16 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 class Items(models.Model):
+    STATUS_CHOICES = (
+        ('TODO', 'To Do'),
+        ('INPROGRESS', 'In Progress'),
+        ('DONE', 'Done'),
+    )
+
     date = models.DateField(null=True)
     description = models.TextField(null=True)
     owner = models.ForeignKey(to=User, on_delete=models.CASCADE)
-    status = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='TODO')
     category = models.CharField(max_length=100)
 
     def get_formatted_date(self):

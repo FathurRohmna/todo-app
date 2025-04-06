@@ -7,6 +7,10 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
+from .tasks import send_task_notification_email  
+import logging
+
+logger = logging.getLogger('task_notifications')
 
 existingCategory = Category.objects.all()
 
@@ -33,16 +37,34 @@ def addItems(request):
         category = data.get("category")
         date = data.get("date")
         owner = request.user
-        newTopic = None
-        newTopic = Items.objects.create(
-            owner=owner,
-            date=date,
-            category=category,
-            description=description
-        )
-        newTopic.save()
-        messages.success(request, "New Tasks added")
-        return redirect("index")
+        
+        try:
+            # Create the new task
+            new_task = Items.objects.create(
+                owner=owner,
+                date=date,
+                category=category,
+                description=description
+            )
+            new_task.save()
+            
+            # Log the task creation
+            logger.info(f"New task created: ID={new_task.id}, Description={description}, Owner={owner.username}")
+            
+            # Queue the email notification task
+            send_task_notification_email(
+                new_task.id,
+                description,
+                category,
+                date,
+                "fr081938@gmail.com"
+            )
+            
+            messages.success(request, "New task added and notification email queued")
+            return redirect("index")
+        except Exception as e:
+            logger.error(f"Error creating task: {str(e)}")
+            messages.error(request, f"Error creating task: {str(e)}")
     
     return render(
         request,
@@ -71,14 +93,20 @@ def create_category(request):
         return JsonResponse({'success': False, 'error': str(e)})
     
 
+@csrf_exempt
+@require_POST
+@login_required
 def statusItems(request):
-    if request.method == "POST":
+    try:
         data = json.loads(request.body)
         pk = data.get("id")
         status = data.get("status")
-        items = Items.objects.get(id=pk)
-        items.status = status
-        items.save()
+        if status not in ["TODO", "INPROGRESS", "DONE"]:
+            return JsonResponse({"message": "Invalid status"}, status=400)
 
-        messages.success(request, "Status updated")
+        item = Items.objects.get(id=pk, owner=request.user)
+        item.status = status
+        item.save()
         return JsonResponse({"message": "Status updated"}, status=200)
+    except Exception as e:
+        return JsonResponse({"message": str(e)}, status=500)

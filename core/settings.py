@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 from django.contrib.messages import constants as messages
+from huey import RedisHuey
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+    "huey.contrib.djhuey",
 ]
 
 EXTERNAL_APPS = ["authentication", "items"]
@@ -150,4 +153,68 @@ MESSAGE_TAGS = {
     messages.SUCCESS: 'success',
     messages.WARNING: 'warning',
     messages.ERROR: 'danger',  # Mapping messages.ERROR to Bootstrap 'danger' class
+}
+
+HUEY = {
+    'huey_class': 'huey.RedisHuey',  # Use Redis as the queue backend
+    'name': 'task-manager',  # Name your queue
+    'results': True,  # Store results of tasks
+    'store_none': False,  # Don't store None results
+    'immediate': False,  # Run tasks asynchronously (set to True for testing)
+    'utc': True,  # Use UTC time
+    'connection': {
+        'host': 'localhost',  # Redis host
+        'port': 6379,  # Redis port
+        'db': 0,  # Redis database
+    },
+    'consumer': {
+        'workers': 2,  # Number of worker processes
+        'worker_type': 'thread',  # Use threads
+        'initial_delay': 0.1,  # Delay between polling (seconds)
+        'backoff': 1.15,  # Backoff factor when no results
+        'max_delay': 10.0,  # Maximum polling delay
+        'scheduler_interval': 1,  # Check schedule every second
+        'periodic': True,  # Enable periodic tasks
+        'check_worker_health': True,  # Check worker health
+    },
+}
+
+EMAIL_BACKEND = config('EMAIL_BACKEND')
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+
+# Configure logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'task_notifications.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'task_notifications': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
 }

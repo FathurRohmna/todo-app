@@ -28,77 +28,36 @@
                 <td class="px-6 py-4 whitespace-nowrap">{{values.description }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">{{values.date}}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    {% if not values.status %}
-                    <div class="container mx-auto">
-                        <div class="flex">
-                            <form id="myForm" action="{% url 'statusItems' %}" method="POST">
-                                {% csrf_token %}
-                                <div class="flex items-center">
-                                    <input
-                                        class="form-checkbox h-4 w-4 text-green-600 transition duration-150 ease-in-out"
-                                        type="checkbox" id="statusCheckbox-{{values.id}}" name="status"
-                                        value="{{values.id}}" />
-                                    <label class="ml-2" for="statusCheckbox-{{values.id}}">
-                                    </label>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    {% else %}
-                    <div class="container mx-auto">
-                        <div class="flex">
-                            <form id="myForm" action="{% url 'statusItems' %}" method="POST">
-                                {% csrf_token %}
-                                <div class="flex items-center">
-                                    <input checked
-                                        class="form-checkbox h-4 w-4 text-green-600 transition duration-150 ease-in-out"
-                                        type="checkbox" id="statusCheckbox-{{values.id}}" name="status"
-                                        value="{{values.id}}" />
-                                    <label class="ml-2" for="statusCheckbox-{{values.id}}">
-                                    </label>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    {% endif %}
+                    <select id="statusSelect-{{ values.id }}" class="border rounded px-2 py-1 text-sm"
+                        onchange="updateStatus('{{ values.id }}')">
+                        <option value="TODO" {% if values.status == "TODO" %}selected{% endif %}>TODO</option>
+                        <option value="INPROGRESS" {% if values.status == "INPROGRESS" %}selected{% endif %}>IN PROGRESS</option>
+                        <option value="DONE" {% if values.status == "DONE" %}selected{% endif %}>DONE</option>
+                    </select>
                     <script>
-                        document.addEventListener('DOMContentLoaded', function () {
-                            const checkbox = document.getElementById('statusCheckbox-{{values.id}}');
-
-                            if (checkbox) {
-                                checkbox.addEventListener('click', function (event) {
-                                    event.preventDefault(); // Prevent default form submission
-
-                                    const status = checkbox.checked;
-                                    const itemId = parseInt('{{values.id}}');
-
-                                    fetch('/statusItems', {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            'X-CSRFToken': '{{ csrf_token }}',
-                                        },
-                                        body: JSON.stringify({
-                                            status: status,
-                                            id: itemId
-                                        }),
-                                    })
-                                        .then(response => {
-                                            if (!response.ok) {
-                                                throw new Error('Network response was not ok');
-                                            }
-                                            return response.json();
-                                        })
-                                        .then(data => {
-                                            console.log('Status updated successfully:', data);
-                                            window.location.href = "{% url 'index' %}";
-                                        })
-                                        .catch(error => {
-                                            console.error('There was a problem updating the status:', error);
-                                        });
+                        function updateStatus(itemId) {
+                            const select = document.getElementById(`statusSelect-${itemId}`);
+                            const status = select.value;
+                
+                            fetch("{% url 'statusItems' %}", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRFToken": "{{ csrf_token }}"
+                                },
+                                body: JSON.stringify({
+                                    id: itemId,
+                                    status: status
+                                }),
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    console.log("Status updated:", data);
+                                })
+                                .catch(error => {
+                                    console.error("Error updating status:", error);
                                 });
-                            }
-                        });
+                        }
                     </script>
                 </td>
 
