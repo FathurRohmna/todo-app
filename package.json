@@ -1,0 +1,16 @@
+{
+  "name": "todo-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {  
+    "watch:css": "npx @tailwindcss/cli -i ./static/css/main.css -o ./static/output.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.0.14",
+    "tailwindcss": "^4.1.2"
+  },
+  "description": ""
+}
