@@ -1,16 +1,103 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>
-            Todo
-        </title>
-        <link href="{% static "output.css" %}" rel="stylesheet">
-    </head>
-    <body>
-        {% block content %}
-        {% endblock content %}
-    </body>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+        Todo
+    </title>
+    <link href="{% static "output.css" %}" rel="stylesheet">
+</head>
+
+<body>
+    <div class="w-full">
+        {% if user.is_authenticated %}
+        {% include 'nav.html'%}
+        {% endif %}
+        <main class="px-4 mx-auto">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    <div id="messageToasts" class="fixed bottom-0 right-0 p-3">
+        {% for message in messages %}
+        <div class="toast hidden mb-3 border-2 border-solid rounded shadow-lg overflow-hidden"
+            data-type="{{ message.tags }}" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="p-3 relative">
+                {{ message }}
+                <div class="w-full h-1 mt-2">
+                    <div class="progress-bar bg-{{ message.tags }} h-full w-full"></div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const messageToasts = document.getElementById('messageToasts');
+            const toastElements = messageToasts.querySelectorAll('.toast');
+
+            const colorMap = {
+                'primary': 'border-blue-500 bg-blue-50',
+                'secondary': 'border-gray-500 bg-gray-50',
+                'success': 'border-green-500 bg-green-50',
+                'danger': 'border-red-500 bg-red-50',
+                'warning': 'border-yellow-500 bg-yellow-50',
+                'info': 'border-sky-500 bg-sky-50'
+            };
+
+            const progressColorMap = {
+                'primary': 'bg-blue-500',
+                'secondary': 'bg-gray-500',
+                'success': 'bg-green-500',
+                'danger': 'bg-red-500',
+                'warning': 'bg-yellow-500',
+                'info': 'bg-sky-500'
+            };
+
+            toastElements.forEach(toast => {
+                const type = toast.getAttribute('data-type');
+                if (colorMap[type]) {
+                    toast.classList.add(...colorMap[type].split(' '));
+                }
+
+                const progressBar = toast.querySelector('.progress-bar');
+                if (progressBar && progressColorMap[type]) {
+                    progressBar.classList.add(progressColorMap[type]);
+                }
+            });
+
+            const showToast = (toast, index) => {
+                toast.classList.remove('hidden');
+                toast.classList.add('block');
+
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                    toast.classList.remove('block');
+                }, 3000);
+
+                const progress = toast.querySelector('.progress-bar');
+                let width = 100;
+                const interval = setInterval(() => {
+                    if (width <= 0) {
+                        clearInterval(interval);
+                    } else {
+                        width -= 1;
+                        progress.style.width = `${width}%`;
+                    }
+                }, 30);
+            };
+
+            toastElements.forEach((toast, index) => {
+                const delay = index * 1000;
+                setTimeout(() => {
+                    showToast(toast, index);
+                }, delay);
+            });
+        });
+    </script>
+</body>
+
 </html>
