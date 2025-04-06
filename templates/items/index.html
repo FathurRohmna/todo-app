@@ -1,9 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
-{% if values %}
 
-<div class="container mx-auto pb-0 mb-0">
-    <table class="min-w-full divide-y divide-gray-200">
+<div class="container mx-auto pb-0 mb-0 pt-10">
+    <div class="mb-4 flex flex-wrap gap-2">
+        <form method="get" class="flex flex-wrap gap-2">
+            {% for status_choice in status_choices %}
+                <button 
+                    type="submit" 
+                    name="status" 
+                    value="{{ status_choice.0 }}"
+                    class="px-4 py-2 rounded-md text-sm font-medium 
+                           {% if status_choice.0 in selected_statuses %}
+                               bg-blue-500 text-white
+                           {% else %}
+                               bg-gray-200 text-gray-700 hover:bg-gray-300
+                           {% endif %}"
+                >
+                    {{ status_choice.1 }}
+                </button>
+            {% endfor %}
+            <!-- Clear filters button -->
+            {% if selected_statuses %}
+                <a href="?page=1" class="px-4 py-2 rounded-md text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    Clear Filters
+                </a>
+            {% endif %}
+        </form>
+    </div>
+    {% if values %}
+
+    <table class="min-w-full divide-y divide-gray-200 pb-10">
         <thead class="bg-gray-50">
             <tr>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -61,64 +87,82 @@
                     </script>
                 </td>
 
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="container mx-auto">
-                        <div class="flex space-x-2">
-                            <button>Actions</button>
+                <td>
+                    <div class="max-w-7xl px-4">
+                        <div class="flex flex-wrap gap-4">
+                            <div class="w-full md:w-1/4">
+                                <form action="{% url 'updateItems' %}" method="GET">
+                                    <button type="submit" name="update" value="{{ values.id }}"
+                                        class="border border-green-500 text-green-500 hover:bg-green-500 hover:text-white font-semibold py-1 px-3 rounded transition">
+                                        Edit
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="w-full md:w-1/4">
+                                <form action="{% url 'deleteItems' %}" method="POST">
+                                    {% csrf_token %}
+                                    <button type="submit" name="delete" value="{{ values.id }}"
+                                        class="border border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-semibold py-1 px-3 rounded transition">
+                                        X
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </td>
-            </tr>
+                </tr>
             {% endfor %}
         </tbody>
     </table>
-</div>
-<div class="flex justify-between items-center mt-4">
-    <span class="text-gray-500 text-sm">
-        Page {{page_obj.number}} of {{page_obj.paginator.num_pages}}
-    </span>
-    <div class="flex">
-        {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}"
-            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-            Previous
-        </a>
-        {% else %}
-        <span
-            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-300 bg-gray-50 cursor-not-allowed">
-            Previous
+
+    <div class="flex justify-between items-center mt-4">
+        <span class="text-gray-500 text-sm">
+            Page {{page_obj.number}} of {{page_obj.paginator.num_pages}}
         </span>
-        {% endif %}
-
-        {% for num in page_obj.paginator.page_range %}
-        <a href="?page={{ num }}"
-            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md {% if num == page_obj.number %}bg-blue-50 border-blue-500 text-blue-600{% else %}text-gray-700 bg-white hover:bg-gray-50{% endif %}">
-            {{ num }}
-        </a>
-        {% endfor %}
-
-        {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}"
-            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-            Next
-        </a>
-        {% else %}
-        <span
-            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-300 bg-gray-50 cursor-not-allowed">
-            Next
-        </span>
-        {% endif %}
-    </div>
-</div>
-
-{% else %}
-<div class="container mx-auto">
-    <div class="flex">
-        <div class="w-1/4">
-            <p class="mb-2">No values for display</p>
-            <a class="text-blue-600 hover:text-blue-800 underline" href="{% url 'addItems' %}">Add Items</a>
+        <div class="flex gap-1">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Previous
+            </a>
+            {% else %}
+            <span
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-300 bg-gray-50 cursor-not-allowed">
+                Previous
+            </span>
+            {% endif %}
+    
+            {% for num in page_obj.paginator.page_range %}
+            <a href="?page={{ num }}"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md {% if num == page_obj.number %}bg-blue-50 border-blue-500 text-blue-600{% else %}text-gray-700 bg-white hover:bg-gray-50{% endif %}">
+                {{ num }}
+            </a>
+            {% endfor %}
+    
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                Next
+            </a>
+            {% else %}
+            <span
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-300 bg-gray-50 cursor-not-allowed">
+                Next
+            </span>
+            {% endif %}
         </div>
     </div>
+
+    {% else %}
+    <div class="container mx-auto">
+        <div class="flex">
+            <div class="w-1/4">
+                <p class="mb-2">No values for display</p>
+                <a class="text-blue-600 hover:text-blue-800 underline" href="{% url 'addItems' %}">Add Items</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
-{% endif %}
+
 {% endblock content%}
