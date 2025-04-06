@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-8">
+    <div class="w-full max-w-lg bg-white rounded-2xl shadow-lg p-8">
+        <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Add Item</h1>
+
+        <form action="{% url viewName %}" method="POST" class="space-y-5">
+            {% csrf_token %}
+
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <input type="text" id="description" name="description" required value="{{ values.description }}"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <div class="relative">
+                <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Categories *</label>
+                <div class="flex space-x-2">
+                    <div class="flex-grow">
+                        <input type="text" id="categorySearch" placeholder="Search or enter new category"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <button type="button" id="addCategoryBtn"
+                        class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        +
+                    </button>
+                </div>
+                <div id="categorySuggestions" class="absolute z-10 w-full bg-white mt-1 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden"></div>
+                
+                <select name="category" id="category" required class="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    {% if values.category %}
+                    <option value="{{ values.category }}" selected>{{ values.category }}</option>
+                    {% else %}
+                    <option value="" disabled selected>Choose...</option>
+                    {% endif %}
+                    {% for category in categories %}
+                    <option value="{{ category.name }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <input type="date" id="date" name="date" required value="{{ values.date | date:'Y-m-d' }}"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <div class="pt-4">
+                {% if viewName == "addItems" %}
+                <button type="submit"
+                    class="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Submit
+                </button>
+                {% else %}
+                <button type="submit" name="update" value="{{ values.id }}"
+                    class="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Save
+                </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categorySearch = document.getElementById('categorySearch');
+    const categorySelect = document.getElementById('category');
+    const addCategoryBtn = document.getElementById('addCategoryBtn');
+    const categorySuggestions = document.getElementById('categorySuggestions');
+    
+    // Get all existing categories from the select element
+    const existingCategories = Array.from(categorySelect.options).map(option => option.value.toLowerCase());
+    
+    // Filter categories as user types
+    categorySearch.addEventListener('input', function() {
+        const searchText = this.value.toLowerCase().trim();
+        if (!searchText) {
+            categorySuggestions.classList.add('hidden');
+            return;
+        }
+        
+        // Filter existing categories
+        const matchedCategories = existingCategories.filter(category => 
+            category && category !== "" && category.includes(searchText)
+        );
+        
+        // Show suggestions
+        categorySuggestions.innerHTML = '';
+        categorySuggestions.classList.remove('hidden');
+        
+        if (matchedCategories.length > 0) {
+            matchedCategories.forEach(category => {
+                const div = document.createElement('div');
+                div.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer';
+                div.textContent = category;
+                div.addEventListener('click', function() {
+                    // Set the value in the select dropdown
+                    for (let i = 0; i < categorySelect.options.length; i++) {
+                        if (categorySelect.options[i].value.toLowerCase() === category) {
+                            categorySelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+                    categorySearch.value = category;
+                    categorySuggestions.classList.add('hidden');
+                });
+                categorySuggestions.appendChild(div);
+            });
+        } else {
+            const div = document.createElement('div');
+            div.className = 'px-4 py-2 italic text-gray-500';
+            div.textContent = 'No matching categories. Click "+" to add new.';
+            categorySuggestions.appendChild(div);
+        }
+    });
+    
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (e.target !== categorySearch && e.target !== categorySuggestions) {
+            categorySuggestions.classList.add('hidden');
+        }
+    });
+    
+    // Add new category button
+    addCategoryBtn.addEventListener('click', function() {
+        const newCategory = categorySearch.value.trim();
+        if (!newCategory) return;
+        
+        // Check if category already exists
+        const exists = existingCategories.includes(newCategory.toLowerCase());
+        if (!exists) {
+            // Add to select dropdown
+            const option = document.createElement('option');
+            option.value = newCategory;
+            option.textContent = newCategory;
+            categorySelect.appendChild(option);
+            existingCategories.push(newCategory.toLowerCase());
+            
+            // Select the new option
+            categorySelect.value = newCategory;
+            
+            // Send AJAX request to create new category
+            fetch("{% url 'create_category' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    name: newCategory
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Category created successfully');
+                }
+            })
+            .catch(error => console.error('Error creating category:', error));
+        } else {
+            // Find and select existing category
+            for (let i = 0; i < categorySelect.options.length; i++) {
+                if (categorySelect.options[i].value.toLowerCase() === newCategory.toLowerCase()) {
+                    categorySelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+        
+        categorySuggestions.classList.add('hidden');
+    });
+});
+</script>
+{% endblock content %}

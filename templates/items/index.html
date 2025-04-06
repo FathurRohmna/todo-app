@@ -1,13 +1,165 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
 {% block content %}
+{% if values %}
 
-<div class="max-w-7xl mx-auto px-4">
-    <div class="flex flex-wrap">
-        <div class="w-full md:w-1/4">
-            <p>No values for display</p>
-            <br />
-            <a class="text-blue-600 underline font-semibold">Add Items</a>
+<div class="container mx-auto pb-0 mb-0">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Sno.</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Category</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Description</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Operations</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for values in page_obj %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">{{forloop.counter}}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{values.category}}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{values.description }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{values.date}}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {% if not values.status %}
+                    <div class="container mx-auto">
+                        <div class="flex">
+                            <form id="myForm" action="{% url 'statusItems' %}" method="POST">
+                                {% csrf_token %}
+                                <div class="flex items-center">
+                                    <input
+                                        class="form-checkbox h-4 w-4 text-green-600 transition duration-150 ease-in-out"
+                                        type="checkbox" id="statusCheckbox-{{values.id}}" name="status"
+                                        value="{{values.id}}" />
+                                    <label class="ml-2" for="statusCheckbox-{{values.id}}">
+                                    </label>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="container mx-auto">
+                        <div class="flex">
+                            <form id="myForm" action="{% url 'statusItems' %}" method="POST">
+                                {% csrf_token %}
+                                <div class="flex items-center">
+                                    <input checked
+                                        class="form-checkbox h-4 w-4 text-green-600 transition duration-150 ease-in-out"
+                                        type="checkbox" id="statusCheckbox-{{values.id}}" name="status"
+                                        value="{{values.id}}" />
+                                    <label class="ml-2" for="statusCheckbox-{{values.id}}">
+                                    </label>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            const checkbox = document.getElementById('statusCheckbox-{{values.id}}');
+
+                            if (checkbox) {
+                                checkbox.addEventListener('click', function (event) {
+                                    event.preventDefault(); // Prevent default form submission
+
+                                    const status = checkbox.checked;
+                                    const itemId = parseInt('{{values.id}}');
+
+                                    fetch('/statusItems', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRFToken': '{{ csrf_token }}',
+                                        },
+                                        body: JSON.stringify({
+                                            status: status,
+                                            id: itemId
+                                        }),
+                                    })
+                                        .then(response => {
+                                            if (!response.ok) {
+                                                throw new Error('Network response was not ok');
+                                            }
+                                            return response.json();
+                                        })
+                                        .then(data => {
+                                            console.log('Status updated successfully:', data);
+                                            window.location.href = "{% url 'index' %}";
+                                        })
+                                        .catch(error => {
+                                            console.error('There was a problem updating the status:', error);
+                                        });
+                                });
+                            }
+                        });
+                    </script>
+                </td>
+
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="container mx-auto">
+                        <div class="flex space-x-2">
+                            <button>Actions</button>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="flex justify-between items-center mt-4">
+    <span class="text-gray-500 text-sm">
+        Page {{page_obj.number}} of {{page_obj.paginator.num_pages}}
+    </span>
+    <div class="flex">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            Previous
+        </a>
+        {% else %}
+        <span
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-300 bg-gray-50 cursor-not-allowed">
+            Previous
+        </span>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        <a href="?page={{ num }}"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md {% if num == page_obj.number %}bg-blue-50 border-blue-500 text-blue-600{% else %}text-gray-700 bg-white hover:bg-gray-50{% endif %}">
+            {{ num }}
+        </a>
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            Next
+        </a>
+        {% else %}
+        <span
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-300 bg-gray-50 cursor-not-allowed">
+            Next
+        </span>
+        {% endif %}
+    </div>
+</div>
+
+{% else %}
+<div class="container mx-auto">
+    <div class="flex">
+        <div class="w-1/4">
+            <p class="mb-2">No values for display</p>
+            <a class="text-blue-600 hover:text-blue-800 underline" href="{% url 'addItems' %}">Add Items</a>
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock content%}
